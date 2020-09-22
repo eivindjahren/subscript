@@ -708,6 +708,62 @@ def test_weltarg_uda(tmpdir):
     assert "SOMEUDA" in str(sch)
 
 
+def test_lineshift_bug(tmpdir):
+    # This long UDQ string suffers linebreaks.
+    inputstr = """UDQ
+
+DEFINE FU_PWRI1 WWIR 'A_01' + WWIR 'A_02' + WWIR 'A_03' + WWIR 'A_04' + WWIR 'A_05' + WWIR 'A_06' + WWIR 'A_07' + WWIR 'A_08' + WWIR 'A_09' + WWIR 'A_10'  + WWIR 'A_11' + WWIR 'A_12' + WWIR 'A_13' + WWIR 'A_14' + WWIR 'A_15'/
+
+/"""  # noqa
+    assert len(inputstr.split("\n")) == 5  # Avoid editor-spoiled test.
+
+    with open("longudq.sch", "w") as file_h:
+        file_h.write(inputstr)
+    sunschconf = {
+        "startdate": datetime.date(2020, 1, 1),
+        "insert": [{"date": datetime.date(2020, 2, 1), "filename": "longudq.sch"}],
+    }
+
+    sch = sunsch.process_sch_config(sunschconf)
+    schstr = str(sch)
+
+    print(schstr)
+
+    # the DEFINE line must be on its own line, so line count should be 9:
+    assert len(schstr.split("\n")) == 9
+    assert (
+        "' A" not in schstr
+    )  # A space has been observed injected in front of well names (A_10)
+
+
+def test_lineshift_bug_noquotes(tmpdir):
+    # This long UDQ string suffers linebreaks.
+    inputstr = """UDQ
+
+DEFINE FU_PWRI1 WWIR A_01 + WWIR A_02 + WWIR A_03 + WWIR A_04 + WWIR A_05 + WWIR A_06 + WWIR A_07 + WWIR A_08 + WWIR A_09 + WWIR A_10  + WWIR A_11 + WWIR A_12 + WWIR A_13 + WWIR A_14 + WWIR A_15 /
+
+/"""  # noqa
+    assert len(inputstr.split("\n")) == 5  # Avoid editor-spoiled test.
+
+    with open("longudq.sch", "w") as file_h:
+        file_h.write(inputstr)
+    sunschconf = {
+        "startdate": datetime.date(2020, 1, 1),
+        "insert": [{"date": datetime.date(2020, 2, 1), "filename": "longudq.sch"}],
+    }
+
+    sch = sunsch.process_sch_config(sunschconf)
+    schstr = str(sch)
+
+    print(schstr)
+
+    # the DEFINE line must be on its own line, so line count should be 9:
+    assert len(schstr.split("\n")) == 9
+    assert (
+        "' A" not in schstr
+    )  # A space has been observed injected in front of well names (A_10)
+
+
 def test_file_startswith_dates():
     """Test file_startswith_dates function"""
     os.chdir(DATADIR)
