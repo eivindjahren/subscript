@@ -2,9 +2,9 @@ language: python
 
 matrix:
   include:
-    - python: '3.6'
-    - python: '3.7'
-    - python: '3.8'
+    - python: "3.6"
+    - python: "3.7"
+    - python: "3.8"
 
 before_install:
   - pip install black flake8
@@ -17,5 +17,8 @@ install:
 
 script:
   - python setup.py test
+  # Check repository is untainted by test code:
+  - git status --porcelain
+  - test -z "$(git status --porcelain)"
   - rstcheck -r docs
   - sphinx-build -W -b html -nv docs/ build/docs
